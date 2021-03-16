@@ -1,8 +1,8 @@
-FROM --platform=${TARGETPLATFORM} alpine:latest
-LABEL maintainer "V2Fly Community <dev@v2fly.org>"
+FROM alpine:latest
+LABEL maintainer "svk salvikie@163.com"
 
 WORKDIR /root
-ARG TARGETPLATFORM
+ARG TARGETPLATFORM=linux/amd64
 COPY v2ray.sh /root/v2ray.sh
 
 RUN set -ex \
@@ -11,5 +11,7 @@ RUN set -ex \
 	&& chmod +x /root/v2ray.sh \
 	&& /root/v2ray.sh "${TARGETPLATFORM}"
 
-VOLUME /etc/v2ray
+#VOLUME /etc/v2ray
+COPY config.json /etc/v2ray/config.json
+
 CMD [ "/usr/bin/v2ray", "-config", "/etc/v2ray/config.json" ]
