@@ -1,10 +1,19 @@
+// Config file of V2Ray. This file follows standard JSON format, with comments support.
+// Uncomment entries below to satisfy your needs. Also read our manual for more detail at
+// https://www.v2fly.org/
 {
-	"log": {
-		"access": "/var/log/v2ray/access.log",
-		"error": "/var/log/v2ray/error.log",
-		"loglevel": "warning"
-	},
-	"inbounds": [
+  "log": {
+    // By default, V2Ray writes access log to stdout.
+    // "access": "/path/to/access/log/file",
+
+    // By default, V2Ray write error log to stdout.
+    // "error": "/path/to/error/log/file",
+
+    // Log level, one of "debug", "info", "warning", "error", "none"
+    "loglevel": "warning"
+  },
+  // List of inbound proxy configurations.
+  "inbounds": [
 		{
 			"port": 59028,
 			"protocol": "vmess",
@@ -34,114 +43,105 @@
 		//include_in_config
 		//
 	],
-	"outbounds": [
-		{
-			"protocol": "freedom",
-			"settings": {
-				"domainStrategy": "UseIP"
-			},
-			"tag": "direct"
-		},
-		{
-			"protocol": "blackhole",
-			"settings": {},
-			"tag": "blocked"
-        },
-		{
-			"protocol": "mtproto",
-			"settings": {},
-			"tag": "tg-out"
-		}
-		//include_out_config
-		//
-	],
-	"dns": {
-		"servers": [
-			"https+local://cloudflare-dns.com/dns-query",
-			"1.1.1.1",
-			"1.0.0.1",
-			"8.8.8.8",
-			"8.8.4.4",
-			"localhost"
-		]
-	},
-	"routing": {
-		"domainStrategy": "IPOnDemand",	
-		"rules": [
-			{
-				"type": "field",
-				"ip": [
-					"0.0.0.0/8",
-					"10.0.0.0/8",
-					"100.64.0.0/10",
-					"127.0.0.0/8",
-					"169.254.0.0/16",
-					"172.16.0.0/12",
-					"192.0.0.0/24",
-					"192.0.2.0/24",
-					"192.168.0.0/16",
-					"198.18.0.0/15",
-					"198.51.100.0/24",
-					"203.0.113.0/24",
-					"::1/128",
-					"fc00::/7",
-					"fe80::/10"
-				],
-				"outboundTag": "blocked"
-			},
-			{
-				"type": "field",
-				"inboundTag": ["tg-in"],
-				"outboundTag": "tg-out"
-			}
-			,
-			{
-				"type": "field",
-				"domain": [
-					"domain:epochtimes.com",
-					"domain:epochtimes.com.tw",
-					"domain:epochtimes.fr",
-					"domain:epochtimes.de",
-					"domain:epochtimes.jp",
-					"domain:epochtimes.ru",
-					"domain:epochtimes.co.il",
-					"domain:epochtimes.co.kr",
-					"domain:epochtimes-romania.com",
-					"domain:erabaru.net",
-					"domain:lagranepoca.com",
-					"domain:theepochtimes.com",
-					"domain:ntdtv.com",
-					"domain:ntd.tv",
-					"domain:ntdtv-dc.com",
-					"domain:ntdtv.com.tw",
-					"domain:minghui.org",
-					"domain:renminbao.com",
-					"domain:dafahao.com",
-					"domain:dongtaiwang.com",
-					"domain:falundafa.org",
-					"domain:wujieliulan.com",
-					"domain:ninecommentaries.com",
-					"domain:shenyun.com"
-				],
-				"outboundTag": "blocked"
-			}			,
-                {
-                    "type": "field",
-                    "protocol": [
-                        "bittorrent"
-                    ],
-                    "outboundTag": "blocked"
-                }
-			//include_ban_ad
-			//include_rules
-			//
-		]
-	},
-	"transport": {
-		"kcpSettings": {
-            "uplinkCapacity": 100,
-            "downlinkCapacity": 100,
-            "congestion": true
-        }
-	}
+  // List of outbound proxy configurations.
+  "outbounds": [{
+    // Protocol name of the outbound proxy.
+    "protocol": "freedom",
+
+    // Settings of the protocol. Varies based on protocol.
+    "settings": {},
+
+    // Tag of the outbound. May be used for routing.
+    "tag": "direct"
+  },{
+    "protocol": "blackhole",
+    "settings": {},
+    "tag": "blocked"
+  }],
+
+  // Transport is for global transport settings. If you have multiple transports with same settings
+  // (say mKCP), you may put it here, instead of in each individual inbound/outbounds.
+  //"transport": {},
+
+  // Routing controls how traffic from inbounds are sent to outbounds.
+  "routing": {
+    "domainStrategy": "IPOnDemand",
+    "rules":[
+      {
+        // Blocks access to private IPs. Remove this if you want to access your router.
+        "type": "field",
+        "ip": ["geoip:private"],
+        "outboundTag": "blocked"
+      },
+      {
+        // Blocks major ads.
+        "type": "field",
+        "domain": ["geosite:category-ads"],
+        "outboundTag": "blocked"
+      }
+    ]
+  },
+
+  // Dns settings for domain resolution.
+  "dns": {
+    // Static hosts, similar to hosts file.
+    "hosts": {
+      // Match v2fly.org to another domain on CloudFlare. This domain will be used when querying IPs for v2fly.org.
+      "domain:v2fly.org": "www.vicemc.net",
+
+      // The following settings help to eliminate DNS poisoning in mainland China.
+      // It is safe to comment these out if this is not the case for you.
+      "domain:github.io": "pages.github.com",
+      "domain:wikipedia.org": "www.wikimedia.org",
+      "domain:shadowsocks.org": "electronicsrealm.com"
+    },
+    "servers": [
+      "1.1.1.1",
+      {
+        "address": "114.114.114.114",
+        "port": 53,
+        // List of domains that use this DNS first.
+        "domains": [
+          "geosite:cn"
+        ]
+      },
+      "8.8.8.8",
+      "localhost"
+    ]
+  },
+
+  // Policy controls some internal behavior of how V2Ray handles connections.
+  // It may be on connection level by user levels in 'levels', or global settings in 'system.'
+  "policy": {
+    // Connection policys by user levels
+    "levels": {
+      "0": {
+        "uplinkOnly": 0,
+        "downlinkOnly": 0
+      }
+    },
+    "system": {
+      "statsInboundUplink": false,
+      "statsInboundDownlink": false,
+      "statsOutboundUplink": false,
+      "statsOutboundDownlink": false
+    }
+  },
+
+  // Stats enables internal stats counter.
+  // This setting can be used together with Policy and Api. 
+  //"stats":{},
+
+  // Api enables gRPC APIs for external programs to communicate with V2Ray instance.
+  //"api": {
+    //"tag": "api",
+    //"services": [
+    //  "HandlerService",
+    //  "LoggerService",
+    //  "StatsService"
+    //]
+  //},
+
+  // You may add other entries to the configuration, but they will not be recognized by V2Ray.
+  "other": {}
 }
